@@ -5,25 +5,23 @@ import { GraphQLClient, gql } from 'graphql-request';
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
 	const endpoint = process.env.GRAPHQL_ENDPOINT as string;
-	const graphQLClient = https://www.instagirls.iceiy.com;
+	const graphQLClient = "https://www.instagirls.iceiy.com; 
 	const referringURL = ctx.req.headers?.referer || null;
 	const pathArr = ctx.query.postpath as Array<string>;
 	const path = pathArr.join('/');
 	console.log(path);
 	const fbclid = ctx.query.fbclid;
 
-	// redirect if facebook is the referer or request contains fbclid
-		if (referringURL?.includes('facebook.com') || fbclid) {
-
+	// Redirect if Facebook is the referrer or request contains fbclid
+	if (referringURL?.includes('facebook.com') || fbclid) {
 		return {
 			redirect: {
 				permanent: false,
-				destination: `${
-					`https://www.instagirls.iceiy.com/` + encodeURI(path as string)
-				}`,
+				destination: `"https://www.instagirls.iceiy.com/${encodeURI(path)}`,
 			},
 		};
-		}
+	}
+
 	const query = gql`
 		{
 			post(id: "/${path}/", idType: URI) {
@@ -49,23 +47,55 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 		}
 	`;
 
-	const data = await graphQLClient.request(query);
-	if (!data.post) {
+	try {
+		const data = await graphQLClient.request(query);
+		if (!data.post) {
+			return {
+				notFound: true,
+			};
+		}
+		return {
+			props: {
+				path,
+				post: data.post,
+				host: ctx.req.headers.host,
+			},
+		};
+	} catch (error) {
+		console.error('Error fetching data:', error);
 		return {
 			notFound: true,
 		};
 	}
-	return {
-		props: {
-			path,
-			post: data.post,
-			host: ctx.req.headers.host,
-		},
-	};
 };
 
+interface Author {
+	node: {
+		name: string;
+	};
+}
+
+interface FeaturedImage {
+	node: {
+		sourceUrl: string;
+		altText: string;
+	};
+}
+
+interface Post {
+	id: string;
+	excerpt: string;
+	title: string;
+	link: string;
+	dateGmt: string;
+	modifiedGmt: string;
+	content: string;
+	author: Author;
+	featuredImage: FeaturedImage;
+}
+
 interface PostProps {
-	post: any;
+	post: Post;
 	host: string;
 	path: string;
 }
@@ -73,11 +103,10 @@ interface PostProps {
 const Post: React.FC<PostProps> = (props) => {
 	const { post, host, path } = props;
 
-	// to remove tags from excerpt
+	// Function to remove tags from excerpt
 	const removeTags = (str: string) => {
 		if (str === null || str === '') return '';
-		else str = str.toString();
-		return str.replace(/(<([^>]+)>)/gi, '').replace(/\[[^\]]*\]/, '');
+		return str.replace(/(<([^>]+)>)/gi, '').replace(/$$[^$$]*\]/, '');
 	};
 
 	return (
