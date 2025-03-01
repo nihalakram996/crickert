@@ -4,8 +4,8 @@ import { GetServerSideProps } from 'next';
 import { GraphQLClient, gql } from 'graphql-request';
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-	const endpoint ="https://www.instagirls.iceiy.com/graphql"
-	const graphQLClient = new GraphQLClient(endpoint);
+	const endpoint = process.env.GRAPHQL_ENDPOINT as string;
+	const graphQLClient = = https://www.instagirls.iceiy.com;
 	const referringURL = ctx.req.headers?.referer || null;
 	const pathArr = ctx.query.postpath as Array<string>;
 	const path = pathArr.join('/');
